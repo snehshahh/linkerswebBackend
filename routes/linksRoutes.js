@@ -18,7 +18,7 @@ router.post('/share', shareLink);
 router.delete('/delete/:linkId', deleteLink);
 
 // Route to update the link description
-router.patch('/update/:linkId', updateDescription);
+router.put('/update/:linkId', updateDescription);
 
 router.get('/user/:userId', getUserLinks);
 
