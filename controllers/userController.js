@@ -21,9 +21,11 @@ exports.registerUser = async (req, res) => {
 
 // Login a user
 exports.loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { emailOrUsername, password } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [{ email: emailOrUsername }, { username: emailOrUsername }]
+    });
     if (!user) {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
@@ -34,7 +36,14 @@ exports.loginUser = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ message: 'Login successful', token });
+    res.setHeader('Authorization', `Bearer ${token}`);
+
+    // Encrypt the response data
+    const responseData = {
+      message: 'Login successful',
+      userId: user._id
+    };
+    res.json(responseData);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
