@@ -3,14 +3,13 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-// Use the collection routes
-
-
 // Import routes
 const userRoutes = require('./routes/userRoutes');
 const linkRoutes = require('./routes/linksRoutes');
 const collectionRouter = require('./routes/collectionRoute');
 const friendshipRouter = require('./routes/friendshipRoute');
+const notificationRouter = require('./routes/notificationRoute');
+const activityRouter = require('./routes/activityLogRoute');
 
 const app = express();
 app.use(cors());
@@ -24,6 +23,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/links', linkRoutes);
 app.use('/api/collections', collectionRouter);
 app.use('/api/friends', friendshipRouter);
+app.use('/api/notification', notificationRouter);
+app.use('/api/activity', activityRouter);
 
 
 const PORT = process.env.PORT || 5000;
