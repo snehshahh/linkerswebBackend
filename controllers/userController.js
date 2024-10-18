@@ -49,10 +49,10 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-// Fetch user profile
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const {userId} =req.params;
+    const user = await User.findById(userId).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -62,3 +62,37 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+// Update user profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { username, email, profilePicture, bio } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          username,
+          email,
+          profilePicture,
+          bio,
+          updatedAt: Date.now()
+        }
+      },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      message: 'Profile updated successfully',
+      updatedUser
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+

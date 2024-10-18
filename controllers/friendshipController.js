@@ -51,17 +51,20 @@ const getPendingFriendRequests = async (req, res) => {
     const pendingRequests = await Friendship.find({
       friendId: userId,
       status: 'pending'
-    }).populate('userId', 'name email'); // Populates the requester user details
+    }).populate('userId', 'username email'); // Populates the requester user details
 
-    if (pendingRequests.length === 0) {
-      return res.status(404).json({ message: 'No pending friend requests found' });
+    // Send a 200 status code with a message if no pending requests are found
+    if (!pendingRequests.length) {
+      return res.status(200).json({ message: 'No pending friend requests found' });
     }
 
+    // Return the pending requests if found
     res.status(200).json(pendingRequests);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching pending friend requests', error });
   }
 };
+
 
 
 // Get all friends of a user

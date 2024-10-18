@@ -15,10 +15,6 @@ const LinkSchema = new mongoose.Schema({
     required: true
   },
   tags: [String],
-  sharedWith: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
   createdAt: {
     type: Date,
     default: Date.now

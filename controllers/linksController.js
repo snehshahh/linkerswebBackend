@@ -43,21 +43,31 @@ const deleteLink = async (req, res) => {
 };
 
 // Update link description
-const updateDescription = async (req, res) => {
+const updateLinkDetails = async (req, res) => {
   try {
     const { linkId } = req.params;
-    const { description } = req.body;
+    const { description, boolImp } = req.body; // Only allow description and boolImp
+
     const link = await Link.findById(linkId);
     if (!link) {
       return res.status(404).json({ message: 'Link not found' });
     }
-    link.description = description;
+
+    // Update only the allowed fields
+    if (description !== undefined) {
+      link.description = description;
+    }
+    if (boolImp !== undefined) {
+      link.boolImp = boolImp;
+    }
+
     await link.save();
     res.status(200).json(link);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating description', error });
+    res.status(500).json({ message: 'Error updating link details', error });
   }
 };
+
 
 // Get all links for a user
 const getUserLinks = async (req, res) => {
@@ -74,6 +84,6 @@ module.exports = {
   createLink,
   shareLink,
   deleteLink,
-  updateDescription,
+  updateLinkDetails,
   getUserLinks
 };

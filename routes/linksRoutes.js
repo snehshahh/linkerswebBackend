@@ -4,7 +4,7 @@ const {
   createLink,
   shareLink,
   deleteLink,
-  updateDescription,
+  updateLinkDetails,
   getUserLinks
 } = require('../controllers/linksController');
 const { protect } = require('../middlewares/authMiddleware'); // Correct import of protect middleware
@@ -20,7 +20,7 @@ router.post('/share',protect, shareLink);
 router.delete('/delete/:linkId',protect, deleteLink);
 
 // Route to update the link description
-router.put('/update/:linkId',protect, updateDescription);
+router.put('/update/:linkId',protect, updateLinkDetails);
 
 router.get('/user/:userId',protect, getUserLinks);
 

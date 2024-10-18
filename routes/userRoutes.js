@@ -5,6 +5,7 @@ const { protect } = require('../middlewares/authMiddleware'); // Correct import 
 
 // Define your routes here
 router.get('/profile/:userId', protect, userController.getProfile); // Use 'protect' instead of 'authenticate'
+router.put('/update-profile/:userId',protect, userController.updateProfile);
 router.post('/register', userController.registerUser);
 router.post('/login', userController.loginUser);
 

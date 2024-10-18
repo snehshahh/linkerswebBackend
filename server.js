@@ -10,9 +10,14 @@ const collectionRouter = require('./routes/collectionRoute');
 const friendshipRouter = require('./routes/friendshipRoute');
 const notificationRouter = require('./routes/notificationRoute');
 const activityRouter = require('./routes/activityLogRoute');
+const messageHistoryRoutes = require('./routes/messageHistoryRoute');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: '*', // Be more specific in production
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Connect to MongoDB
@@ -25,6 +30,7 @@ app.use('/api/collections', collectionRouter);
 app.use('/api/friends', friendshipRouter);
 app.use('/api/notification', notificationRouter);
 app.use('/api/activity', activityRouter);
+app.use('/api/message-history', messageHistoryRoutes);
 
 
 const PORT = process.env.PORT || 5000;

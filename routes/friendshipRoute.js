@@ -16,7 +16,7 @@ router.post('/friend-request',protect,sendFriendRequest);
 // Accept or reject a friend request
 router.put('/friend-request/:friendshipId',protect, updateFriendRequestStatus);
 // Get all friends for a specific user
-router.get('/friends/:userId',protect, getFriends);
+router.get('/:userId',protect, getFriends);
 // Delete a friendship
 router.delete('/friendship/:friendshipId',protect,deleteFriendship);
 router.get('/friend-requests/pending/:userId',protect, getPendingFriendRequests);
