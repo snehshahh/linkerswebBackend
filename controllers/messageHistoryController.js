@@ -17,8 +17,8 @@ exports.saveMessage = async (req, res) => {
                 senderId,
                 receiverId,
                 content,
-                sharedLinks: sharedLinkId ? [{ linkId: sharedLinkId, sharedBy: senderId }] : [],
-                sharedCollections: sharedCollectionId ? [{ collectionId: sharedCollectionId, sharedBy: senderId }] : []
+                sharedLinks: sharedLinkId ? { linkId: sharedLinkId, sharedBy: senderId } : {},
+                sharedCollections: sharedCollectionId ? { collectionId: sharedCollectionId, sharedBy: senderId } : {}
             });
 
             // Save the message and push it to the messages array
@@ -76,11 +76,12 @@ exports.getMessagesWithLinksAndCollections = async (req, res) => {
                 { senderId: userId2, receiverId: userId1 }
             ]
         })
-        .populate('sharedLinks.linkId') // Populate the link details from the Links model
-        .populate('sharedLinks.sharedBy', 'name') // Populate the user who shared the link (only fetch the name)
-        .populate('sharedCollections.collectionId') // Populate the collection details from the Collections model
-        .populate('sharedCollections.sharedBy', 'name') // Populate the user who shared the collection (only fetch the name)
-        .sort({ timestamp: -1 }); // Sort messages in chronological order
+        .populate('sharedLinks.linkId') // Populate the link details from the Link model
+        .populate('sharedLinks.sharedBy', 'name') // Populate the user who shared the link (fetch only the name)
+        .populate('sharedCollections.collectionId') // Populate the collection details from the Collection model
+        .populate('sharedCollections.sharedBy', 'name') // Populate the user who shared the collection (fetch only the name)
+        .sort({ timestamp: -1 }); // Sort messages in descending order of timestamp
+
         res.status(200).json(messages);
     } catch (error) {
         console.error('Error fetching messages with links and collections:', error);

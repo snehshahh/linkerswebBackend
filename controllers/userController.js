@@ -96,3 +96,26 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+// Search for users by username
+// Search for users by username
+exports.searchUsers = async (req, res) => {
+  const { userId } = req.params; // The ID of the logged-in user
+  const { username } = req.query; // The username to search for
+
+  try {
+    // Ensure that the username parameter is a string
+    if (!username || typeof username !== 'string') {
+      return res.status(400).json({ message: 'Invalid or missing username parameter' });
+    }
+
+    // Find users whose usernames contain the search term, excluding the current user
+    const users = await User.find({
+      username: { $regex: new RegExp(username, 'i') }, // Create a RegExp object for the search
+      _id: { $ne: userId } // Exclude the current user from the search results
+    }).select('-password');
+
+    res.json({ users });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};

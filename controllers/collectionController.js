@@ -24,7 +24,7 @@ const getCollectionsByUser = async (req, res) => {
       // Ensure the links field is always an array, even if it's empty
       collection.links = collection.links || [];
       if (collection.links.length > 0) {
-        await collection.populate('links sharedWith').execPopulate();
+        await collection.populate('links');
       }
     }
 
@@ -110,6 +110,34 @@ const removeLinkFromCollection = async (req, res) => {
     res.status(500).json({ message: 'Error removing link from collection', error });
   }
 };
+// Add a link to a collection
+const addLinkToCollection = async (req, res) => {
+  try {
+    const { collectionId } = req.params; 
+    const { linkId } = req.body;
+
+    // Find the collection by ID
+    const collection = await Collection.findById(collectionId);
+    if (!collection) {
+      return res.status(404).json({ message: 'Collection not found' });
+    }
+
+    // Check if the link is already present in the collection
+    if (collection.links.includes(linkId)) {
+      return res.status(400).json({ message: 'Link already exists in the collection' });
+    }
+
+    // Add the link to the collection
+    collection.links.push(linkId);
+
+    // Save the updated collection
+    await collection.save();
+
+    res.status(200).json({ message: 'Link added to collection successfully', collection });
+  } catch (error) {
+    res.status(500).json({ message: 'Error adding link to collection', error });
+  }
+};
 
 
 module.exports = {
@@ -118,5 +146,6 @@ module.exports = {
   shareCollection,
   deleteCollection,
   removeLinkFromCollection,
+  addLinkToCollection,
   updateCollection
 };

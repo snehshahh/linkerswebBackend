@@ -24,7 +24,7 @@ const messageSchema = new mongoose.Schema({
         enum: ['sent', 'delivered', 'read'],
         default: 'sent'
     },
-    sharedLinks: [{
+    sharedLinks: {
         linkId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Link' // Reference to the Links model
@@ -33,8 +33,8 @@ const messageSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User' // Reference to the user who shared the link
         }
-    }],
-    sharedCollections: [{
+    },
+    sharedCollections: {
         collectionId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Collection' // Reference to the Collections model
@@ -43,7 +43,7 @@ const messageSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User' // Reference to the user who shared the collection
         }
-    }]
+    }
 });
 
 module.exports = mongoose.model('Message', messageSchema);
