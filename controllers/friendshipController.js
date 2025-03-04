@@ -1,4 +1,5 @@
 const Friendship = require('../models/Friendships');
+const User=require('../models/User')
 
 // Send a friend request
 const sendFriendRequest = async (req, res) => {
@@ -35,13 +36,41 @@ const updateFriendRequestStatus = async (req, res) => {
       return res.status(404).json({ message: 'Friendship not found' });
     }
 
+    // If status is 'accepted', update both users' friend arrays
+    if (status === 'accepted') {
+      const userId = friendship.userId.toString();  // assuming userId is from the Friendship model
+      const friendId = friendship.friendId.toString(); // assuming friendId is from the Friendship model
+
+      // Find both users
+      const user = await User.findById(userId);
+      const friend = await User.findById(friendId);
+
+      if (!user || !friend) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Check if they are already friends to avoid duplicate entries
+      if (!user.friends.includes(friendId)) {
+        user.friends.push(friendId);
+        await user.save();
+      }
+
+      if (!friend.friends.includes(userId)) {
+        friend.friends.push(userId);
+        await friend.save();
+      }
+    }
+
+    // Update the friendship status
     friendship.status = status;
     await friendship.save();
-    res.status(200).json(friendship);
+
+    res.status(200).json({ message: 'Friendship status updated', friendship });
   } catch (error) {
     res.status(500).json({ message: 'Error updating friendship status', error });
   }
 };
+
 
 const getPendingFriendRequests = async (req, res) => {
   try {
@@ -49,7 +78,7 @@ const getPendingFriendRequests = async (req, res) => {
 
     // Find all friendships where the status is 'pending' and the user is the recipient (friendId)
     const pendingRequests = await Friendship.find({
-      friendId: userId,
+      userId: userId,
       status: 'pending'
     }).populate('userId', 'username email'); // Populates the requester user details
 
