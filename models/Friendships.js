@@ -1,37 +1,32 @@
-const mongoose = require('mongoose');
+// models/Friendships.js
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-const FriendshipSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to the user initiating the friendship
-    required: true
+const Friendship = sequelize.define('Friendship', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
   },
-  friendId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to the user being added as a friend
-    required: true
+  user_id: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  friend_id: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
   status: {
-    type: String,
-    enum: ['pending', 'accepted', 'rejected'],
-    default: 'pending'
+    type: DataTypes.STRING,
+    defaultValue: 'pending',
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  created_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+}, {
+  tableName: 'friendships',
+  timestamps: false,
 });
 
-// Update the updatedAt field on save
-FriendshipSchema.pre('save', function(next) {
-  if (!this.isNew) {
-    this.updatedAt = Date.now();
-  }
-  next();
-});
-
-module.exports = mongoose.model('Friendship', FriendshipSchema);
+module.exports = Friendship;

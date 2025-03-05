@@ -1,39 +1,34 @@
-  const mongoose = require('mongoose');
+// models/Collections.js
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-  const CollectionSchema = new mongoose.Schema({
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // Reference to User model
-      required: true
-    },
-    name: {
-      type: String,
-      required: true
-    },
-    description: {
-      type: String,
-      required: true
-    },
-    links: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Link'
-    }],
-    createdAt: {
-      type: Date,
-      default: Date.now
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now
-    }
-  });
+const Collection = sequelize.define('Collection', {
+  collectionId: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+  },
+  userId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.STRING,
+  },
+  sharedWith: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: [],
+  },
+  links: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: [],
+  },
+}, {
+  tableName: 'collections',
+  timestamps: false,
+});
 
-  // Update the updatedAt field on save
-  CollectionSchema.pre('save', function(next) {
-    if (!this.isNew) {
-      this.updatedAt = Date.now();
-    }
-    next();
-  });
-
-  module.exports = mongoose.model('Collection', CollectionSchema);
+module.exports = Collection;

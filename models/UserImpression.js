@@ -1,45 +1,44 @@
-const mongoose = require('mongoose');
+// models/UserImpression.js
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-const UserImpressionSchema = new mongoose.Schema({
+const UserImpression = sequelize.define('UserImpression', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to the User model
-    required: true,
-    index: true // Index for faster queries by userId
+    type: DataTypes.STRING,
+    allowNull: false,
   },
   linkId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Link', // Reference to the Link model
-    required: true,
-    index: true // Index for faster queries by linkId
-  },  
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   timeSpent: {
-    type: Number, // Time spent on the link in seconds (or your preferred unit)
-    required: true,
-    default: 0
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
   },
   liked: {
-    type: Boolean, // Whether the user liked the link
-    required: true,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
   shared: {
-    type: Boolean, // Whether the user shared the link
-    required: true,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
   click: {
-    type: Boolean, // Whether the user clicked the link
-    required: true,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
   timestamp: {
-    type: Date, // When the impression occurred
-    default: Date.now
-  }
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+}, {
+  tableName: 'user_impressions',
+  timestamps: false,
 });
 
-// Compound index for queries involving both userId and linkId
-UserImpressionSchema.index({ userId: 1, linkId: 1 });
-
-module.exports = mongoose.model('UserImpression', UserImpressionSchema);
+module.exports = UserImpression;

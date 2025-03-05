@@ -1,49 +1,34 @@
-const Collection = require('../models/Collections');
+// controllers/collectionController.js
+const { Collection } = require('../models/Collections');
 
-// Create a new collection
 const createCollection = async (req, res) => {
   try {
     const { userId, name, description, links, sharedWith } = req.body;
-    const newCollection = new Collection({ userId, name, description, links, sharedWith });
-    await newCollection.save();
+    const newCollection = await Collection.create({ collectionId: `collection_${Date.now()}`, userId, name, description, links, sharedWith });
     res.status(201).json(newCollection);
   } catch (error) {
     res.status(500).json({ message: 'Error creating collection', error });
   }
 };
 
-// Get all collections for a user
 const getCollectionsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    // Fetch collections for the given userId
-    const collections = await Collection.find({ userId });
-
-    // Populate links and sharedWith fields only if the links array is not empty
-    for (const collection of collections) {
-      // Ensure the links field is always an array, even if it's empty
-      collection.links = collection.links || [];
-      if (collection.links.length > 0) {
-        await collection.populate('links');
-      }
-    }
-
+    const collections = await Collection.findAll({ where: { userId } });
     res.status(200).json(collections);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching collections', error });
   }
 };
 
-
-// Share a collection with other users
 const shareCollection = async (req, res) => {
   try {
-    const { collectionId, userIds } = req.body; // `userIds` is an array of ObjectIds
-    const collection = await Collection.findById(collectionId);
+    const { collectionId, userIds } = req.body;
+    const collection = await Collection.findByPk(collectionId);
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
     }
-    collection.sharedWith = [...new Set([...collection.sharedWith, ...userIds])]; // Ensure unique user IDs
+    collection.sharedWith = [...new Set([...collection.sharedWith, ...userIds])];
     await collection.save();
     res.status(200).json(collection);
   } catch (error) {
@@ -51,11 +36,10 @@ const shareCollection = async (req, res) => {
   }
 };
 
-// Delete a collection
 const deleteCollection = async (req, res) => {
   try {
     const { collectionId } = req.params;
-    const collection = await Collection.findByIdAndDelete(collectionId);
+    const collection = await Collection.destroy({ where: { collectionId } });
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
     }
@@ -65,12 +49,11 @@ const deleteCollection = async (req, res) => {
   }
 };
 
-// Update collection name or description
 const updateCollection = async (req, res) => {
   try {
     const { collectionId } = req.params;
     const { name, description } = req.body;
-    const collection = await Collection.findById(collectionId);
+    const collection = await Collection.findByPk(collectionId);
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
     }
@@ -83,69 +66,46 @@ const updateCollection = async (req, res) => {
   }
 };
 
-// Remove a link from a collection
 const removeLinkFromCollection = async (req, res) => {
   try {
-    const { collectionId } = req.params; 
+    const { collectionId } = req.params;
     const { linkId } = req.body;
-
-    const collection = await Collection.findById(collectionId);
+    const collection = await Collection.findByPk(collectionId);
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
     }
-
-    // Check if the link exists in the collection
-    const linkIndex = collection.links.indexOf(linkId);
-    if (linkIndex === -1) {
-      return res.status(400).json({ message: 'Link not found in the collection' });
-    }
-
-    // Remove the link from the collection
-    collection.links.splice(linkIndex, 1);
-
+    collection.links = collection.links.filter(id => id !== linkId);
     await collection.save();
-
     res.status(200).json({ message: 'Link removed from collection successfully', collection });
   } catch (error) {
     res.status(500).json({ message: 'Error removing link from collection', error });
   }
 };
-// Add a link to a collection
+
 const addLinkToCollection = async (req, res) => {
   try {
-    const { collectionId } = req.params; 
+    const { collectionId } = req.params;
     const { linkId } = req.body;
-
-    // Find the collection by ID
-    const collection = await Collection.findById(collectionId);
+    const collection = await Collection.findByPk(collectionId);
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
     }
-
-    // Check if the link is already present in the collection
-    if (collection.links.includes(linkId)) {
-      return res.status(400).json({ message: 'Link already exists in the collection' });
+    if (!collection.links.includes(linkId)) {
+      collection.links.push(linkId);
+      await collection.save();
     }
-
-    // Add the link to the collection
-    collection.links.push(linkId);
-
-    // Save the updated collection
-    await collection.save();
-
     res.status(200).json({ message: 'Link added to collection successfully', collection });
   } catch (error) {
     res.status(500).json({ message: 'Error adding link to collection', error });
   }
 };
 
-
 module.exports = {
   createCollection,
   getCollectionsByUser,
   shareCollection,
   deleteCollection,
+  updateCollection,
   removeLinkFromCollection,
   addLinkToCollection,
-  updateCollection
 };

@@ -1,106 +1,91 @@
-const Message = require('../models/MessageHistory');
-const Link = require('../models/Links'); // Import the Links model
-const Collection = require('../models/Collections'); // Import the Collections model
-const User = require('../models/User'); // Adjust the path as needed
+// controllers/messageHistoryController.js
+const { Message } = require('../models/MessageHistory');
+const { Link } = require('../models/Links');
+const { Collection } = require('../models/Collections');
+const { User } = require('../models/User');
 
+exports.saveMessage = async (req, receiverIds, res) => {
+  const { senderId, content, sharedLinkId, sharedCollectionId } = req.body;
 
-// Save a new message
-exports.saveMessage = async (req, res) => {
-    const { senderId, receiverIds, content, sharedLinkId, sharedCollectionId } = req.body;
-
-    try {
-        // Initialize an array to hold the created messages
-        const messages = [];
-        // Loop through each receiverId and create a message
-        for (const receiverId of receiverIds) {
-            const newMessage = new Message({
-                senderId,
-                receiverId,
-                content,
-                sharedLinks: sharedLinkId ? { linkId: sharedLinkId, sharedBy: senderId } : {},
-                sharedCollections: sharedCollectionId ? { collectionId: sharedCollectionId, sharedBy: senderId } : {}
-            });
-
-            // Save the message and push it to the messages array
-            const savedMessage = await newMessage.save();
-            messages.push(savedMessage);
-        }
-
-        res.status(201).json({ success: true, message: 'Messages sent successfully', data: messages });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Failed to send messages', error: error.message });
+  try {
+    const messages = [];
+    for (const receiverId of receiverIds) {
+      const newMessage = await Message.create({ senderId, receiverId, content, sharedLinkId, sharedCollectionId });
+      messages.push(newMessage);
     }
+    res.status(201).json({ success: true, message: 'Messages sent successfully', data: messages });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to send messages', error: error.message });
+  }
 };
 
-// Get a list of conversations for a user
 exports.getConversationList = async (req, res) => {
-    const { userId } = req.params;
+  const { userId } = req.params;
 
-    try {
-        // Fetch messages where the user is either the sender or receiver
-        const conversations = await Message.find({
-            $or: [{ senderId: userId }, { receiverId: userId }]
-        });
+  try {
+    const conversations = await Message.findAll({
+      where: { $or: [{ senderId: userId }, { receiverId: userId }] },
+      attributes: ['senderId', 'receiverId'],
+      group: ['senderId', 'receiverId'],
+    });
 
-        // Extract unique user IDs
-        const uniqueUserIds = new Set(
-            conversations.flatMap(message => [
-                message.senderId.toString() !== userId ? message.senderId.toString() : null,
-                message.receiverId.toString() !== userId ? message.receiverId.toString() : null
-            ]).filter(Boolean) // Remove null values
-        );
-
-        // Populate the user details for each unique user ID
-        const userDetails = await User.find(
-            { _id: { $in: Array.from(uniqueUserIds) } },
-            'username'
-        );
-
-        res.status(200).json({ success: true, data: userDetails });
-    } catch (error) {
-        console.error('Error retrieving conversation list:', error);
-        res.status(500).json({ success: false, message: 'Failed to retrieve conversation list', error: error.message });
-    }
+    const uniqueUserIds = [...new Set(conversations.flatMap(m => [m.senderId, m.receiverId].filter(id => id !== userId)))];
+    const userDetails = await User.findAll({ where: { id: uniqueUserIds }, attributes: ['id', 'username'] });
+    res.status(200).json({ success: true, data: userDetails });
+  } catch (error) {
+    console.error('Error retrieving conversation list:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve conversation list', error: error.message });
+  }
 };
 
-
-// Get message history between two users
 exports.getMessagesWithLinksAndCollections = async (req, res) => {
-    try {
-        const { userId1, userId2 } = req.params;
+  try {
+    const { userId1, userId2 } = req.params;
+    const messages = await Message.findAll({
+      where: {
+        $or: [
+          { senderId: userId1, receiverId: userId2 },
+          { senderId: userId2, receiverId: userId1 },
+        ],
+      },
+      order: [['timestamp', 'DESC']],
+    });
 
-        // Find messages between two users and populate sharedLinks and sharedCollections
-        const messages = await Message.find({
-            $or: [
-                { senderId: userId1, receiverId: userId2 },
-                { senderId: userId2, receiverId: userId1 }
-            ]
-        })
-        .populate('sharedLinks.linkId') // Populate the link details from the Link model
-        .populate('sharedLinks.sharedBy', 'name') // Populate the user who shared the link (fetch only the name)
-        .populate('sharedCollections.collectionId') // Populate the collection details from the Collection model
-        .populate('sharedCollections.sharedBy', 'name') // Populate the user who shared the collection (fetch only the name)
-        .sort({ timestamp: -1 }); // Sort messages in descending order of timestamp
+    const messagesWithDetails = await Promise.all(messages.map(async msg => {
+      let linkDetails = null, collectionDetails = null;
+      if (msg.sharedLinkId) {
+        linkDetails = await Link.findByPk(msg.sharedLinkId);
+      }
+      if (msg.sharedCollectionId) {
+        collectionDetails = await Collection.findByPk(msg.sharedCollectionId);
+      }
+      return {
+        ...msg.dataValues,
+        sharedLink: linkDetails,
+        sharedCollection: collectionDetails,
+      };
+    }));
 
-        res.status(200).json(messages);
-    } catch (error) {
-        console.error('Error fetching messages with links and collections:', error);
-        res.status(500).json({ error: 'An error occurred while fetching the messages' });
-    }
+    res.status(200).json(messagesWithDetails);
+  } catch (error) {
+    console.error('Error fetching messages with links and collections:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the messages' });
+  }
 };
 
-// Update message status
 exports.updateMessageStatus = async (req, res) => {
-    const { messageId } = req.params;
-    const { status } = req.body;
+  const { messageId } = req.params;
+  const { status } = req.body;
 
-    try {
-        const updatedMessage = await Message.findByIdAndUpdate(messageId, { status }, { new: true });
-        if (!updatedMessage) {
-            return res.status(404).json({ success: false, message: 'Message not found' });
-        }
-        res.status(200).json({ success: true, data: updatedMessage });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Failed to update message status', error: error.message });
+  try {
+    const message = await Message.findByPk(messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
     }
+    message.status = status;
+    await message.save();
+    res.status(200).json({ success: true, data: message });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to update message status', error: error.message });
+  }
 };

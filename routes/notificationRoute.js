@@ -1,16 +1,10 @@
+// routes/notificationRoute.js
 const express = require('express');
-const { createNotification, getUserNotifications, markAsRead } = require('../controllers/notificationController');
 const router = express.Router();
-const { protect } = require('../middlewares/authMiddleware'); // Correct import of protect middleware
+const NotificationController = require('../controllers/notificationController');
 
-
-// Create a new notification
-router.post('/',protect, createNotification);
-
-// Get all notifications for a user
-router.get('/:userId',protect, getUserNotifications);
-
-// Mark a notification as read
-router.patch('/:notificationId/read',protect, markAsRead);
+router.post('/notifications', NotificationController.createNotification);
+router.get('/notifications/:userId', NotificationController.getUserNotifications);
+router.put('/notifications/:notificationId/read', NotificationController.markAsRead);
 
 module.exports = router;

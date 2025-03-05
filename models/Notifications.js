@@ -1,40 +1,45 @@
-const mongoose = require('mongoose');
+// models/Notifications.js
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-const NotificationSchema = new mongoose.Schema({
+const Notification = sequelize.define('Notification', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // The user who is receiving the notification
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false,
   },
   type: {
-    type: String,
-    enum: ['friend_request', 'link_shared', 'collection_shared'], // Type of notification
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false,
   },
   message: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false,
   },
   relatedUserId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User' // Reference to the user associated with the notification
+    type: DataTypes.STRING,
   },
   relatedLinkId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Link' // Optional reference to a link related to the notification
+    type: DataTypes.STRING,
   },
   relatedCollectionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Collection' // Optional reference to a collection related to the notification
-  },
-  isRead: {
-    type: Boolean,
-    default: false // Whether the notification has been read
+    type: DataTypes.STRING,
   },
   createdAt: {
-    type: Date,
-    default: Date.now // Timestamp when the notification was created
-  }
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  isRead: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+}, {
+  tableName: 'notifications',
+  timestamps: false,
 });
 
-module.exports = mongoose.model('Notification', NotificationSchema);
+module.exports = Notification;

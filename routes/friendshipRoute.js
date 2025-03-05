@@ -1,23 +1,12 @@
+// routes/friendshipRoute.js
 const express = require('express');
 const router = express.Router();
-const {
-  sendFriendRequest,
-  updateFriendRequestStatus,
-  getFriends,
-  deleteFriendship,
-  getPendingFriendRequests
-} = require('../controllers/friendshipController');
-const { protect } = require('../middlewares/authMiddleware'); // Correct import of protect middleware
+const FriendshipController = require('../controllers/friendshipController');
 
+router.post('/friendships', FriendshipController.sendFriendRequest);
+router.put('/friendships/:friendshipId', FriendshipController.updateFriendRequestStatus);
+router.get('/friendships/pending/:userId', FriendshipController.getPendingFriendRequests);
+router.get('/friendships/:userId', FriendshipController.getFriends);
+router.delete('/friendships/:friendshipId', FriendshipController.deleteFriendship);
 
-
-// Send a friend request
-router.post('/friend-request',protect,sendFriendRequest);
-// Accept or reject a friend request
-router.put('/friend-request/:friendshipId',protect, updateFriendRequestStatus);
-// Get all friends for a specific user
-router.get('/:userId',protect, getFriends);
-// Delete a friendship
-router.delete('/friendship/:friendshipId',protect,deleteFriendship);
-router.get('/friend-requests/pending/:userId',protect, getPendingFriendRequests);
 module.exports = router;

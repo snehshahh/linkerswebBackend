@@ -1,13 +1,13 @@
+// routes/userRoute.js
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
-const { protect } = require('../middlewares/authMiddleware'); // Correct import of protect middleware
+const UserController = require('../controllers/userController');
+const {protect} =require('../middlewares/authMiddleware')
 
-// Define your routes here
-router.get('/profile/:userId', protect, userController.getProfile); // Use 'protect' instead of 'authenticate'
-router.put('/update-profile/:userId',protect, userController.updateProfile);
-router.post('/register', userController.registerUser);
-router.get('/search-users/:userId',protect, userController.searchUsers);
-router.post('/login', userController.loginUser);
+router.post('/users/register', UserController.registerUser);
+router.post('/users/login', UserController.loginUser);
+router.get('/users/:userId',protect, UserController.getProfile);
+router.put('/users/:userId',protect, UserController.updateProfile);
+router.get('/users/:userId/search',protect, UserController.searchUsers);
 
 module.exports = router;

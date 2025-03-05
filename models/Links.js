@@ -1,40 +1,41 @@
-const mongoose = require('mongoose');
+// models/Links.js
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-const LinkSchema = new mongoose.Schema({
+const Link = sequelize.define('Link', {
+  linkId: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+  },
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to User model
-    required: true
+    type: DataTypes.INTEGER,
+    allowNull: false,
   },
   url: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  title: {
+    type: DataTypes.STRING,
   },
   description: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
   },
-  tags: [String],
-  createdAt: {
-    type: Date,
-    default: Date.now
+  tags: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: [],
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  sharedWith: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: [],
   },
-  boolImp: { // New boolean field
-    type: Boolean,
-    default: false // You can set the default value to false or true as needed
-  }
+  boolImp: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+}, {
+  tableName: 'links',
+  timestamps: false,
 });
 
-// Update the updatedAt field on save
-LinkSchema.pre('save', function(next) {
-  if (!this.isNew) {
-    this.updatedAt = Date.now();
-  }
-  next();
-});
-
-module.exports = mongoose.model('Link', LinkSchema);
+module.exports = Link;

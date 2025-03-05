@@ -1,38 +1,32 @@
-require('dotenv').config();
+// server.js
 const express = require('express');
-const cors = require('cors');
-const connectDB = require('./config/db');
-
-// Import routes
-const userRoutes = require('./routes/userRoutes');
-const linkRoutes = require('./routes/linksRoutes');
-const collectionRouter = require('./routes/collectionRoute');
-const friendshipRouter = require('./routes/friendshipRoute');
-const notificationRouter = require('./routes/notificationRoute');
-const activityRouter = require('./routes/activityLogRoute');
-const messageHistoryRoutes = require('./routes/messageHistoryRoute');
-const userImpressionRoutes = require('./routes/impressionUserRoute');
-
 const app = express();
-app.use(cors({
-  origin: '*', // Be more specific in production
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+require('dotenv').config();
+
+// Middleware
 app.use(express.json());
 
-// Connect to MongoDB
-connectDB();
+// Routes
+const userImpressionRoute = require('./routes/userImpressionRoute');
+const linksRoute = require('./routes/linksRoutes');
+const collectionRoute = require('./routes/collectionRoute');
+const notificationRoute = require('./routes/notificationRoute');
+const messageHistoryRoute = require('./routes/messageHistoryRoute');
+const friendshipRoute = require('./routes/friendshipRoute');
+const userRoute = require('./routes/userRoutes');
 
-app.use('/api/users', userRoutes);
-app.use('/api/links', linkRoutes);
-app.use('/api/collections', collectionRouter);
-app.use('/api/friends', friendshipRouter);
-app.use('/api/notification', notificationRouter);
-app.use('/api/activity', activityRouter);
-app.use('/api/user-impression', userImpressionRoutes);
-app.use('/api/message-history', messageHistoryRoutes);
+app.use('/api', userImpressionRoute);
+app.use('/api', linksRoute);
+app.use('/api', collectionRoute);
+app.use('/api', notificationRoute);
+app.use('/api', messageHistoryRoute);
+app.use('/api', friendshipRoute);
+app.use('/api', userRoute);
 
+// Health check
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});

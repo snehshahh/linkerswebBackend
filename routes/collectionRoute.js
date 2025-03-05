@@ -1,24 +1,14 @@
+// routes/collectionRoute.js
 const express = require('express');
 const router = express.Router();
-const {
-    createCollection,
-    getCollectionsByUser,
-    updateCollection,
-    deleteCollection,
-    shareCollection,
-    removeLinkFromCollection,
-    addLinkToCollection
-  } = require('../controllers/collectionController');
-const { protect } = require('../middlewares/authMiddleware'); // Correct import of protect middleware
+const CollectionController = require('../controllers/collectionController');
 
-
-// Routes for managing collections
-router.post('/',protect,createCollection);  // Create a collection
-router.get('/user/:userId',protect,getCollectionsByUser);  // Get all collections by a user
-router.put('/update/:collectionId',protect,updateCollection);  // Update a collection (name or description)
-router.put('/removeLink/:collectionId',protect,removeLinkFromCollection);  // Update a collection (name or description)
-router.post('/add-link/:collectionId',protect,addLinkToCollection);
-router.delete('/delete/:collectionId',protect,deleteCollection);  // Delete a collection
-router.post('/share',protect,shareCollection);  // Share a collection with other users
+router.post('/collections', CollectionController.createCollection);
+router.get('/collections/:userId', CollectionController.getCollectionsByUser);
+router.post('/collections/share', CollectionController.shareCollection);
+router.delete('/collections/:collectionId', CollectionController.deleteCollection);
+router.put('/collections/:collectionId', CollectionController.updateCollection);
+router.post('/collections/:collectionId/links', CollectionController.addLinkToCollection);
+router.delete('/collections/:collectionId/links', CollectionController.removeLinkFromCollection);
 
 module.exports = router;
