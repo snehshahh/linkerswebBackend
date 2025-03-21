@@ -1,42 +1,56 @@
-// models/MessageHistory.js
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
 const Message = sequelize.define('Message', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-    autoIncrement: true,
   },
-  senderId: {
-    type: DataTypes.STRING,
+  sender_id: {
+    type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
   },
-  receiverId: {
-    type: DataTypes.STRING,
+  receiver_id: {
+    type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
   },
   content: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  sharedLinkId: {
-    type: DataTypes.STRING,
+  shared_link_id: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'links',
+      key: 'id',
+    },
   },
-  sharedCollectionId: {
-    type: DataTypes.STRING,
+  shared_collection_id: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'collections',
+      key: 'id',
+    },
   },
   timestamp: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
   },
   status: {
     type: DataTypes.STRING,
-    defaultValue: 'unread',
+    defaultValue: 'unread', // Kept default as it’s necessary
   },
 }, {
   tableName: 'message_history',
   timestamps: false,
 });
 
-module.exports = Message;   
+module.exports = Message;

@@ -1,4 +1,4 @@
-const { Link } = require('../models/Links');
+const  Link  = require('../models/Links');
 const { Op } = require('sequelize');
 
 // Validate URL format
@@ -25,13 +25,13 @@ const createLink = async (req, res) => {
     }
 
     const newLink = await Link.create({ 
-      linkId: `link_${Date.now()}`, 
-      userId, 
+      user_id: userId, 
       url, 
       description: description || '', 
       tags: tags || [], 
       sharedWith: sharedWith || [], 
-      boolImp: false 
+      boolImp: false,
+      is_public: true,
     });
 
     res.status(201).json(newLink);
@@ -59,10 +59,17 @@ const shareLink = async (req, res) => {
       return res.status(404).json({ message: 'Link not found' });
     }
 
-    // Merge and deduplicate shared users
-    const updatedSharedWith = [...new Set([...link.sharedWith, ...userIds])];
-    
-    link.sharedWith = updatedSharedWith;
+    // Ensure sharedWith is an array, handle empty case
+    let updatedSharedWith;
+    if (!Array.isArray(link.shared_with) || link.shared_with.length === 0) {
+      // If sharedWith is empty or not an array, initialize with userIds
+      updatedSharedWith = [...userIds];
+    } else {
+      // If sharedWith has values, append new userIds and deduplicate
+      updatedSharedWith = [...new Set([...link.shared_with, ...userIds])];
+    }
+
+    link.shared_with = updatedSharedWith;
     await link.save();
 
     res.status(200).json(link);
@@ -81,7 +88,7 @@ const deleteLink = async (req, res) => {
       return res.status(400).json({ message: 'Link ID is required' });
     }
 
-    const deletedCount = await Link.destroy({ where: { linkId } });
+    const deletedCount = await Link.destroy({ where: { id: linkId } });
     if (deletedCount === 0) {
       return res.status(404).json({ message: 'Link not found' });
     }
@@ -123,16 +130,16 @@ const updateLinkDetails = async (req, res) => {
 
 const getUserLinks = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { user_id } = req.params;
     const { search, tag, isImportant } = req.query;
 
     // Input validation
-    if (!userId) {
+    if (!user_id) {
       return res.status(400).json({ message: 'User ID is required' });
     }
 
     // Build dynamic where clause
-    const whereClause = { userId };
+    const whereClause = { user_id };
 
     if (search) {
       whereClause[Op.or] = [
@@ -151,7 +158,7 @@ const getUserLinks = async (req, res) => {
 
     const links = await Link.findAll({ 
       where: whereClause,
-      order: [['createdAt', 'DESC']] // Latest links first
+      order: [['created_at', 'DESC']] // Latest links first
     });
 
     res.status(200).json(links);
@@ -161,10 +168,26 @@ const getUserLinks = async (req, res) => {
   }
 };
 
+// New endpoint for public links
+const getPublicLinks = async (req, res) => {
+  try {
+    const publicLinks = await Link.findAll({
+      where: { is_public: true },
+      order: [['created_at', 'DESC']], // Most recent first
+      limit: 10, // Limit to 10 for recommendations
+    });
+
+    res.status(200).json(publicLinks);
+  } catch (error) {
+    console.error('Error retrieving public links:', error);
+    res.status(500).json({ message: 'Error retrieving public links', error: error.message });
+  }
+};
 module.exports = {
   createLink,
   shareLink,
   deleteLink,
   updateLinkDetails,
   getUserLinks,
+  getPublicLinks,
 };

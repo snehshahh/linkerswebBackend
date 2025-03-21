@@ -1,6 +1,5 @@
-// controllers/userController.js
-const  User  = require('../models/User');
-const  Friendship = require('../models/Friendships');
+const User = require('../models/User');
+const Friendship = require('../models/Friendships');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
@@ -16,9 +15,14 @@ const validatePassword = (password) => {
   return password.length >= 8;
 };
 
+// Validate username (e.g., non-empty and reasonable length)
+const validateUsername = (username) => {
+  return username && typeof username === 'string' && username.length >= 3 && username.length <= 50;
+};
+
 exports.registerUser = async (req, res) => {
   const { username, email, password } = req.body;
-  
+
   try {
     // Validate input
     if (!username || !email || !password) {
@@ -33,6 +37,10 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 8 characters long' });
     }
 
+    if (!validateUsername(username)) {
+      return res.status(400).json({ message: 'Username must be between 3 and 50 characters' });
+    }
+
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
@@ -40,10 +48,10 @@ exports.registerUser = async (req, res) => {
 
     // Hash password before storing
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ 
-      username, 
-      email, 
-      password: hashedPassword 
+    const newUser = await User.create({
+      username,
+      email,
+      password: hashedPassword,
     });
 
     res.status(201).json({ message: 'User registered successfully', userId: newUser.id });
@@ -56,20 +64,22 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   const { emailOrUsername, password } = req.body;
   try {
-    const user = await User.findOne({ 
-      where: { 
+    // Find the user
+    const user = await User.findOne({
+      where: {
         [Op.or]: [
-          { email: emailOrUsername }, 
-          { username: emailOrUsername }
-        ] 
-      } 
+          { email: emailOrUsername },
+          { username: emailOrUsername },
+        ],
+      },
     });
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid email or username' });
     }
-
+    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
+    
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid password' });
     }
@@ -84,7 +94,7 @@ exports.loginUser = async (req, res) => {
 };
 
 exports.searchUsers = async (req, res) => {
-  const { userId } = req.params;
+  const { userId } = req.params; // Now a UUID string
   const { username } = req.query;
 
   try {
@@ -92,26 +102,26 @@ exports.searchUsers = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or missing username parameter' });
     }
 
-    const users = await User.findAll({ 
-      where: { 
-        username: { [Op.iLike]: `%${username}%` }, 
-        id: { [Op.ne]: userId } 
-      }, 
-      attributes: { exclude: ['password'] } 
+    const users = await User.findAll({
+      where: {
+        username: { [Op.iLike]: `%${username}%` },
+        id: { [Op.ne]: userId }, // Compare UUIDs as strings
+      },
+      attributes: { exclude: ['password'] },
     });
 
-    const friendships = await Friendship.findAll({ 
-      where: { 
+    const friendships = await Friendship.findAll({
+      where: {
         [Op.or]: [
-          { user_id:userId }, 
-          { friend_id: userId }
-        ] 
-      } 
+          { user_id: userId }, // Compare UUIDs
+          { friend_id: userId }, // Compare UUIDs
+        ],
+      },
     });
 
     const friendshipMap = new Map();
     friendships.forEach(f => {
-      const otherUserId = f.user_id === userId ? f.friend_id : f.user_id;
+      const otherUserId = f.user_id === userId ? f.friend_id : f.user_id; // Compare UUIDs
       friendshipMap.set(otherUserId, f.status);
     });
 
@@ -119,7 +129,7 @@ exports.searchUsers = async (req, res) => {
       ...user.dataValues,
       isFriend: friendshipMap.get(user.id) === 'accepted',
       isRequestSent: friendshipMap.get(user.id) === 'pending' && friendships.some(f => f.user_id === userId && f.friend_id === user.id),
-      isRequestReceived: friendshipMap.get(user.id) === 'pending' && friendships.some(f => f.user_id === user.id && f.friend_id === userId),
+      isRequestReceived: friendshipMap.get(user.id) === 'pending' && friendships.some(f => f.user_id === userId && f.friend_id === user.id),
       mutualFriendsCount: 0, // Simplified; add logic for mutual friends if needed
     }));
 
@@ -132,7 +142,7 @@ exports.searchUsers = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params; // Now a UUID string
     const user = await User.findByPk(userId, { attributes: { exclude: ['password'] } });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -146,7 +156,7 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params; // Now a UUID string
     const { username, email, profilePicture, bio } = req.body;
 
     // Validate email if provided
@@ -154,8 +164,12 @@ exports.updateProfile = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
+    if (username && !validateUsername(username)) {
+      return res.status(400).json({ message: 'Username must be between 3 and 50 characters' });
+    }
+
     const [updated] = await User.update(
-      { username, email, profilePicture, bio, updatedAt: new Date() }, 
+      { username, email, profilePicture, bio, updated_at: new Date() },
       { where: { id: userId }, returning: true }
     );
 

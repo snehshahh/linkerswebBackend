@@ -1,15 +1,15 @@
 // controllers/userImpressionController.js
-const { UserImpression } = require('../models/UserImpression');
+const  UserImpression  = require('../models/UserImpression');
 const axios = require('axios');
 require('dotenv').config();
 
 const PYTHON_API_URL = process.env.PYTHON_API_URL || 'http://localhost:5000/api';
 
 exports.saveImpression = async (req, res) => {
-  const { userId, linkId, timeSpent, liked, shared, click } = req.body;
+  const { user_id, link_id, time_spent, liked, shared, click } = req.body;
 
   try {
-    const impression = await UserImpression.create({ userId, linkId, timeSpent, liked, shared, click });
+    const impression = await UserImpression.create({ user_id, link_id, time_spent, liked, shared, click });
     res.status(201).json({ message: 'Impression logged successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to log impression', details: error.message });

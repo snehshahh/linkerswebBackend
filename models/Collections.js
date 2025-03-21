@@ -1,15 +1,19 @@
-// models/Collections.js
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
 const Collection = sequelize.define('Collection', {
-  collectionId: {
-    type: DataTypes.STRING,
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  userId: {
-    type: DataTypes.STRING,
+  user_id: {
+    type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
   },
   name: {
     type: DataTypes.STRING,
@@ -18,13 +22,15 @@ const Collection = sequelize.define('Collection', {
   description: {
     type: DataTypes.STRING,
   },
-  sharedWith: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: [],
+  shared_with: {
+    type: DataTypes.ARRAY(DataTypes.UUID),
   },
   links: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: [],
+    type: DataTypes.ARRAY(DataTypes.UUID),
+  },
+  isPublic: { // New field
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
   },
 }, {
   tableName: 'collections',

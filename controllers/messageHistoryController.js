@@ -1,18 +1,16 @@
 // controllers/messageHistoryController.js
-const { Message } = require('../models/MessageHistory');
-const { Link } = require('../models/Links');
-const { Collection } = require('../models/Collections');
-const { User } = require('../models/User');
+const Message = require('../models/MessageHistory');
+const Link = require('../models/Links');
+const Collection = require('../models/Collections');
+const User = require('../models/User');
 
-exports.saveMessage = async (req, receiverIds, res) => {
-  const { senderId, content, sharedLinkId, sharedCollectionId } = req.body;
+exports.saveMessage = async (req, res) => {
+  const { sender_id,receiver_id,content, shared_link_id, shared_colleciton_id } = req.body;
 
   try {
     const messages = [];
-    for (const receiverId of receiverIds) {
-      const newMessage = await Message.create({ senderId, receiverId, content, sharedLinkId, sharedCollectionId });
-      messages.push(newMessage);
-    }
+    const newMessage = await Message.create({ sender_id,receiver_id,content, shared_link_id, shared_colleciton_id });
+    messages.push(newMessage);
     res.status(201).json({ success: true, message: 'Messages sent successfully', data: messages });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to send messages', error: error.message });
@@ -24,9 +22,9 @@ exports.getConversationList = async (req, res) => {
 
   try {
     const conversations = await Message.findAll({
-      where: { $or: [{ senderId: userId }, { receiverId: userId }] },
-      attributes: ['senderId', 'receiverId'],
-      group: ['senderId', 'receiverId'],
+      where: { $or: [{ sender_id: userId }, { receiver_id: userId }] },
+      attributes: ['sender_id', 'receiver_id'],
+      group: ['sender_id', 'receiver_id'],
     });
 
     const uniqueUserIds = [...new Set(conversations.flatMap(m => [m.senderId, m.receiverId].filter(id => id !== userId)))];

@@ -1,40 +1,42 @@
-// models/UserImpression.js
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
 const UserImpression = sequelize.define('UserImpression', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-    autoIncrement: true,
   },
-  userId: {
-    type: DataTypes.STRING,
+  user_id: {
+    type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
   },
-  linkId: {
-    type: DataTypes.STRING,
+  link_id: {
+    type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: 'links',
+      key: 'id',
+    },
   },
-  timeSpent: {
+  time_spent: {
     type: DataTypes.INTEGER,
-    defaultValue: 0,
   },
   liked: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
   },
   shared: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
   },
   click: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
   },
   timestamp: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
   },
 }, {
   tableName: 'user_impressions',

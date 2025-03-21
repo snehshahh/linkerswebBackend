@@ -1,15 +1,19 @@
-// models/Links.js
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
 const Link = sequelize.define('Link', {
-  linkId: {
-    type: DataTypes.STRING,
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  userId: {
-    type: DataTypes.INTEGER,
+  user_id: {
+    type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
   },
   url: {
     type: DataTypes.STRING,
@@ -23,16 +27,32 @@ const Link = sequelize.define('Link', {
   },
   tags: {
     type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: [],
   },
-  sharedWith: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: [],
+  shared_with: {
+    type: DataTypes.ARRAY(DataTypes.UUID),
   },
-  boolImp: {
+  bool_imp: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  isPublic: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+  upvote: { // New field for likes (alternative naming)
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  downvote: { // New field for dislikes (alternative naming)
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  created_at: {
+    type: DataTypes.DATE,
+  },
+  warning:{
+    type:DataTypes.STRING
+  }
 }, {
   tableName: 'links',
   timestamps: false,

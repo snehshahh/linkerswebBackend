@@ -1,16 +1,18 @@
 // controllers/friendshipController.js
-const { Friendship } = require('../models/Friendships');
-const { User } = require('../models/User');
+const  Friendship  = require('../models/Friendships');
+const { Op } = require('sequelize');
+
+const  User  = require('../models/User');
 
 const sendFriendRequest = async (req, res) => {
   try {
-    const { userId, friendId } = req.body;
-    const existingFriendship = await Friendship.findOne({ where: { userId, friendId } });
+    const { user_id, friend_id } = req.body;
+    const existingFriendship = await Friendship.findOne({ where: { user_id, friend_id } });
     if (existingFriendship) {
       return res.status(400).json({ message: 'Friend request already exists' });
     }
 
-    const newFriendship = await Friendship.create({ userId, friendId });
+    const newFriendship = await Friendship.create({  user_id, friend_id });
     res.status(201).json(newFriendship);
   } catch (error) {
     res.status(500).json({ message: 'Error sending friend request', error });
@@ -31,23 +33,22 @@ const updateFriendRequestStatus = async (req, res) => {
       return res.status(404).json({ message: 'Friendship not found' });
     }
 
-    if (status === 'accepted') {
-      await User.update({ where: { id: friendship.userId } }, { friends: sequelize.fn('array_append', sequelize.col('friends'), friendship.friendId) });
-      await User.update({ where: { id: friendship.friendId } }, { friends: sequelize.fn('array_append', sequelize.col('friends'), friendship.userId) });
-    }
-
+    // Update friendship status
     friendship.status = status;
     await friendship.save();
+
     res.status(200).json({ message: 'Friendship status updated', friendship });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating friendship status', error });
+    console.error('Error updating friendship status:', error);
+    res.status(500).json({ message: 'Error updating friendship status', error: error.message });
   }
 };
 
+
 const getPendingFriendRequests = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const pendingRequests = await Friendship.findAll({ where: { friendId: userId, status: 'pending' } });
+    const { user_id } = req.params;
+    const pendingRequests = await Friendship.findAll({ where: { friend_id: user_id, status: 'pending' } });
     if (!pendingRequests.length) {
       return res.status(200).json({ message: 'No pending friend requests found' });
     }
@@ -59,11 +60,20 @@ const getPendingFriendRequests = async (req, res) => {
 
 const getFriends = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const friendships = await Friendship.findAll({ where: { $or: [{ userId }, { friendId: userId }], status: 'accepted' } });
+    const { user_id } = req.params;
+
+    // Ensure `user_id` is correctly parsed as an integer if necessary
+    const friendships = await Friendship.findAll({ 
+      where: { 
+        [Op.or]: [{ user_id: user_id }, { friend_id: user_id }], 
+        status: 'accepted' 
+      } 
+    });
+
     res.status(200).json(friendships);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching friends', error });
+    console.error('Error fetching friends:', error);
+    res.status(500).json({ message: 'Error fetching friends', error: error.message });
   }
 };
 

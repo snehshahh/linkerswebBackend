@@ -1,14 +1,13 @@
-// routes/collectionRoute.js
 const express = require('express');
 const router = express.Router();
-const CollectionController = require('../controllers/collectionController');
+const { createCollection, addLinkToCollection, shareCollection, getUserCollections, updateCollection, deleteCollection } = require('../controllers/collectionController');
+const {protect} = require('../middlewares/authMiddleware');
 
-router.post('/collections', CollectionController.createCollection);
-router.get('/collections/:userId', CollectionController.getCollectionsByUser);
-router.post('/collections/share', CollectionController.shareCollection);
-router.delete('/collections/:collectionId', CollectionController.deleteCollection);
-router.put('/collections/:collectionId', CollectionController.updateCollection);
-router.post('/collections/:collectionId/links', CollectionController.addLinkToCollection);
-router.delete('/collections/:collectionId/links', CollectionController.removeLinkFromCollection);
+router.post('/collections', protect, createCollection);
+router.post('/collections/add-link', protect, addLinkToCollection);
+router.post('/collections/share', protect, shareCollection);
+router.get('/collections/:userId', protect, getUserCollections);
+router.put('/update-collections/:collectionId', protect, updateCollection);
+router.delete('/delete-collections/:collectionId', protect, deleteCollection);
 
 module.exports = router;

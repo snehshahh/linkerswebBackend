@@ -1,16 +1,19 @@
-// models/Notifications.js
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
 const Notification = sequelize.define('Notification', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-    autoIncrement: true,
   },
-  userId: {
-    type: DataTypes.STRING,
+  user_id: {
+    type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
   },
   type: {
     type: DataTypes.STRING,
@@ -20,22 +23,32 @@ const Notification = sequelize.define('Notification', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  relatedUserId: {
-    type: DataTypes.STRING,
+  related_user_id: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
   },
-  relatedLinkId: {
-    type: DataTypes.STRING,
+  related_link_id: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'links',
+      key: 'id',
+    },
   },
-  relatedCollectionId: {
-    type: DataTypes.STRING,
+  related_collection_id: {
+    type: DataTypes.UUID,
+    references: {
+      model: 'collections',
+      key: 'id',
+    },
   },
-  createdAt: {
+  created_at: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
   },
-  isRead: {
+  is_read: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
   },
 }, {
   tableName: 'notifications',
