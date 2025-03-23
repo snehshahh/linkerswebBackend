@@ -161,7 +161,7 @@ const getUserCollections = async (req, res) => {
 const updateCollection = async (req, res) => {
   try {
     const { collectionId } = req.params;
-    const { name, description } = req.body;
+    const { name, description,upvote,downvote,warning } = req.body;
 
     if (!collectionId) {
       return res.status(400).json({ message: 'Collection ID is required' });
@@ -175,6 +175,9 @@ const updateCollection = async (req, res) => {
     const updates = {};
     if (name) updates.name = name;
     if (description !== undefined) updates.description = description;
+    if (upvote !== undefined) updates.upvote = upvote;
+    if (downvote !== undefined) updates.downvote = downvote;
+    if (warning !== undefined) updates.warning = warning;
 
     await Collection.update(updates, { where: { id: collectionId } });
 

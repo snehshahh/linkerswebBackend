@@ -32,6 +32,20 @@ const Collection = sequelize.define('Collection', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  upvote: { // New field for likes (alternative naming)
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  downvote: { // New field for dislikes (alternative naming)
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  created_at: {
+    type: DataTypes.DATE,
+  },
+  warning:{
+    type:DataTypes.STRING
+  }
 }, {
   tableName: 'collections',
   timestamps: false,

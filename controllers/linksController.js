@@ -103,7 +103,7 @@ const deleteLink = async (req, res) => {
 const updateLinkDetails = async (req, res) => {
   try {
     const { linkId } = req.params;
-    const { description, boolImp, tags } = req.body;
+    const { description, boolImp, tags,upvote,downvote,warning } = req.body;
 
     // Input validation
     if (!linkId) {
@@ -118,7 +118,9 @@ const updateLinkDetails = async (req, res) => {
     // Update fields only if they are provided
     if (description !== undefined) link.description = description;
     if (boolImp !== undefined) link.boolImp = boolImp;
-    if (tags !== undefined) link.tags = tags;
+    if (upvote !== undefined) link.upvote = upvote;
+    if (downvote !== undefined) link.downvote = downvote;
+    if (warning !== undefined) link.warning = warning;
 
     await link.save();
     res.status(200).json(link);
